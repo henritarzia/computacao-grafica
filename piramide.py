@@ -196,18 +196,20 @@ loc_color = glGetUniformLocation(program, "color")
 """### Capturando eventos de teclado e modificando variáveis para a matriz de transformação"""
 
 d = 0.0       # rotação
-t = 0.0       # translação
+t_x = 0.0     # translação
+t_y = 0.0     # translação
 s = 1.0       # escala
 
 def key_event(window,key,scancode,action,mods):
-    global d, s, t
+    global d, s, t_x, t_y
 
-    if key == 263: d -= 0.01        # seta para a esquerda (rotação)
-    elif key == 262: d += 0.01      # seta para a direita  (rotação)
-    elif key == 265: s += 0.01      # seta para cima (escala)
-    elif key == 264: s -= 0.01      # seta para baixo (escala)
-    elif key == 65: t -= 0.01       # a (translação)
-    elif key == 83: t += 0.01       # s (translação)
+    if key == 82: d -= 0.01           # r (rotação)
+    elif key == 263: t_x -= 0.01      # seta para a esquerda (translação em x)
+    elif key == 262: t_x += 0.01      # seta para a direita (translação em x)
+    elif key == 265: t_y += 0.01      # seta para cima (translação em y)
+    elif key == 264: t_y -= 0.01      # seta para baixo (translação em y)
+    elif key == 65: s -= 0.01         # a (escala)
+    elif key == 83: s += 0.01         # s (escala)
     
 glfw.set_key_callback(window,key_event)
 
@@ -260,9 +262,9 @@ while not glfw.window_should_close(window):
                                     -sin_d, 0.0, cos_d, 0.0, 
                                     0.0,    0.0,   0.0, 1.0], np.float32)
 
-    mat_translation = np.array([    1.0, 0.0, 0.0, t, 
-                                    0.0, 1.0, 0.0, t, 
-                                    0.0, 0.0, 1.0, t, 
+    mat_translation = np.array([    1.0, 0.0, 0.0, t_x, 
+                                    0.0, 1.0, 0.0, t_y, 
+                                    0.0, 0.0, 1.0, 0.0, 
                                     0.0, 0.0, 0.0, 1.0], np.float32)
 
     mat_scale = np.array([          s,   0.0, 0.0, 0.0,
