@@ -17,8 +17,13 @@ import math
 """Janela"""
 
 glfw.init()
-glfw.window_hint(glfw.VISIBLE, glfw.FALSE);
-window = glfw.create_window(1000, 1000, "Mola 2D", None, None)
+glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
+
+#Dimensões da tela
+width = 1280    #largura
+height = 920    #altura
+
+window = glfw.create_window(width, height, "Mola 2D", None, None)
 glfw.make_context_current(window)
 
 """Vertex Shader"""
@@ -82,6 +87,13 @@ glUseProgram(program)
 #Inicializa gerador de números aleatórios
 rand.seed(a=None, version=2)
 
+#Controle de distorções em telas não quadradas
+ratio_x = 1.0
+ratio_y = 1.0
+
+if width > height: ratio_y = width/height
+if height > width: ratio_x = height/width
+
 #Coordenadas de cada vértice
 points = []   #lista de pontos da mola
 x = 0         #coordenada x
@@ -89,7 +101,7 @@ y = 0         #coordenada y
 
 #Obtém os pontos da mola por meio da função sin(24*a)/10
 for a in np.arange(-186,192,6):
-    y = math.radians(a)/24
+    y = math.radians(a)/24 
     x = math.sin(24*a)/10
     c = (x,y)
     points.append(c)  
@@ -135,7 +147,7 @@ ys = points[0][1]       #y de referência para a escala
 yr = points[int(size/2)][1]    #y de referência para a rotação (vértice médio da mola)
 xr = 0                         #x de referência para a rotação
 
-xt = 0
+xt = 0                         #x de translação para o retorno do salto
 
 def key_event(window,key,scancode,action,mods):
     global s_y, direction, xr, xt
@@ -199,6 +211,12 @@ while not glfw.window_should_close(window):
     glClearColor(1.0, 1.0, 1.0, 1.0)
 
     if release and s_y < 1.0: s_y += 0.02
+
+    #Matriz para controle do aspect ratio da mola
+    mat_ratio = np.array([  ratio_x,     0.0, 0.0, 0.0,
+                                0.0, ratio_y, 0.0, 0.0,
+                                0.0,     0.0, 1.0, 0.0,
+                                0.0,     0.0, 0.0, 1.0], np.float32)
     
     #Matriz para rotação durante salto
     mat_rotation = np.array([  cos, -sin, 0.0, 0.0, 
@@ -248,9 +266,10 @@ while not glfw.window_should_close(window):
     #Matriz de rotação com ponto de referência
     R = multiplica_matriz(mat_reference_before_r, mat_rotation)
     R = multiplica_matriz(R, mat_reference_after_r)
-
+    
     mat_transform = multiplica_matriz(R,S)
     mat_transform = multiplica_matriz(T,mat_transform)
+    mat_transform = multiplica_matriz(mat_ratio,mat_transform)
 
     loc = glGetUniformLocation(program, "mat")
     glUniformMatrix4fv(loc, 1, GL_TRUE, mat_transform)
